@@ -36,8 +36,20 @@ mis_docs = My_Documents(5)
 ruta = str(mis_docs)+ r'\watertank.hst'
 response = subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
 ruta2 = str(mis_docs)+ r'\watertank.txt'
-file_exists2 = os.path.exists(ruta2)
+file_exists = os.path.exists(ruta2)
 
+if file_exists:
+	#if the file exists, then open and read it.
+	with open(ruta2, 'rb') as f:
+		try:  # catch OSError in case of a one line file 
+			f.seek(-2, os.SEEK_END)
+			while f.read(1) != b'\n':
+				f.seek(-2, os.SEEK_CUR)
+		except OSError:
+			f.seek(0)
+		last_line = f.readline().decode()
+
+print(last_line)
 
 
 
