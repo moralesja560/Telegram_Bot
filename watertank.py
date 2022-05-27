@@ -28,9 +28,10 @@ def My_Documents(location):
 
 
 ################## end of the auxiliary functions
-
-#convert from HST to TXT
-#recover the file using the filepath
+#steps
+	#convert from HST to TXT
+	#recover the file using the filepath
+	#
 
 mis_docs = My_Documents(5)
 ruta = str(mis_docs)+ r'\watertank.hst'
