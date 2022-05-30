@@ -8,6 +8,7 @@ from urllib.parse import quote
 from dotenv import load_dotenv
 
 
+
 config = load_dotenv(".env")
 JorgeMorales = os.getenv('JorgeMorales')
 token = os.getenv('api_token')

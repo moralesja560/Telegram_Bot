@@ -3,16 +3,27 @@ import requests
 import os
 from dotenv import load_dotenv
 import pyautogui
-config = load_dotenv(".env")
+import sys
 import time
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 import json
 
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
+
+load_dotenv()
 JorgeMorales = os.getenv('JorgeMorales')
 AngelI = os.getenv('AngelI')
 token = os.getenv('api_token')
 
+print(JorgeMorales)
 ############################################## Function to send message
 def send_message(user_id, text,token):
 	global json_respuesta
@@ -54,7 +65,7 @@ while True:
 	# Code executed here
 
 	im1 = pyautogui.screenshot(region=(43,279, 343, 500))
-	im1.save(r"screenshot.png")
+	im1.save(resource_path(r"screenshot.png"))
 	message = 'an error ocurred when printing'
 	text_encoded = quote(message)
 	#send_message(JorgeMorales,text_encoded ,token)
