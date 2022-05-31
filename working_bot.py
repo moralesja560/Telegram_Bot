@@ -20,6 +20,7 @@ def resource_path(relative_path):
 
 load_dotenv()
 JorgeMorales = os.getenv('JorgeMorales')
+Grupo_SAP = os.getenv('SAP_LT_GROUP')
 AngelI = os.getenv('AngelI')
 token = os.getenv('api_token')
 
@@ -66,8 +67,8 @@ while True:
 
 	im1 = pyautogui.screenshot(region=(43,279, 343, 500))
 	im1.save(resource_path(r"screenshot.png"))
-	message = 'an error ocurred when printing'
+	message = 'error'
 	text_encoded = quote(message)
-	#send_message(JorgeMorales,text_encoded ,token)
-	send_photo(JorgeMorales, 'screenshot.png',token)
+	send_message(Grupo_SAP,text_encoded ,token)
+	#send_photo(Carlos, 'screenshot.png',token)
 	time.sleep(200)
