@@ -17,6 +17,13 @@ from urllib.request import Request, urlopen
 import json
 #get the info
 
+load_dotenv()
+JorgeMorales = os.getenv('JorgeMorales')
+Grupo_SAP = os.getenv('SAP_LT_GROUP')
+AngelI = os.getenv('AngelI')
+token_bot = os.getenv('api_token')
+
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
@@ -99,40 +106,28 @@ def retrieveWT():
 while True:
 	control_number += 1
 	print(control_number)
-	
-	
-	
-	
-	
-	
-	
-	
 	#recover the last number:
 	actual_WT = retrieveWT()
 	if actual_WT == None:
 		sys.exit()
-	
 
-
-	if actual_WT < 81:
-		#call critical function
-		critical_notification()
-	else:
+	#Ya tenemos el nivel de cisterna, se calculan las tendencias.
+	if past_WT > 0:
+	#here is the part where we compare values to exercise critical actions
+	#dependiendo del nivel y de las tendencias se hacen las notificaciones pertinentes.
+		if actual_WT < 81:
+			#call critical function
+			send_message(JorgeMorales,quote(f"Notificación de nivel crítico de cisterna: Nivel en {actual_WT}"),token_bot)
 		#get WT updates every 12 passes or 120 minutes
 		if(control_number % 12 == 0):
+			delta_WT =  actual_WT - past_WT
+			if delta_WT <= -2:
+				min_left = actual_WT/((past_WT-actual_WT)/10)
+				print(f"Nivel de cisterna en {actual_WT}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío")
+			else:
+				send_message(JorgeMorales,quote(f"Nivel de cisterna: {actual_WT}. Hay {delta_WT} cm de diferencia vs ultima actualización"),token_bot)
+			
 
+	past_WT = actual_WT
 
-
-	if past_WT == 0:
-		#first run i think
-		past_WT = actual_WT
-	else:
-		#here is the part where we compare values to exercise critical actions
-		delta_WT = past_WT - actual_WT 
-		if delta_WT >= 2:
-			min_left = actual_WT/((past_WT-actual_WT)/10)
-			print(f"La cisterna ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío")
-		elif delta_WT <-1:
-			print(f"Nivel de cisterna: {actual_WT}. Ha subido {delta_WT} cm")
-		past_WT = actual_WT
-	time.sleep(600)
+	time.sleep(20)
