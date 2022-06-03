@@ -64,7 +64,6 @@ def log_finished(offset):
 	with open(resource_path(r'images/last.txt'), 'w') as f:
 		f.write(offset)
 
-
 offset = int(load_finished())
 print(f"-------evento inicial:{offset}")
 while True:
