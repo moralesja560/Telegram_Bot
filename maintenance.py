@@ -25,9 +25,9 @@ with open(resource_path(r'images/station.csv'), newline='') as f:
 
 
 #your own public IP
-UDP_IP = "10.65.68.98"
+UDP_IP = "10.65.96.58"
 #Choose UDP port. PLC does not have a port selector
-UDP_PORT = 5005
+UDP_PORT =  137
 
 sock = socket.socket(socket.AF_INET,
     socket.SOCK_DGRAM)
