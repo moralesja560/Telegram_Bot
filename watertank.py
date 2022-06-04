@@ -2,6 +2,7 @@
 #developed by Ing. Jorge Morales, MBA.
 #Control and Automation Engineering Department
 
+from email.contentmanager import raw_data_manager
 from math import trunc
 import os
 import sys
@@ -81,7 +82,7 @@ control_number = 1
 def retrieveWT():
 	#get the file
 	#ruta = str(mis_docs)+ r'\watertank.hst'
-	#response = subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
+	#subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
 	ruta2 = str(mis_docs)+ r'\watertank.txt'
 	file_exists = os.path.exists(ruta2)
 
@@ -94,8 +95,16 @@ def retrieveWT():
 					f.seek(-2, os.SEEK_CUR)
 			except OSError:
 				f.seek(0)
-			last_line = int(f.readline().decode())
-			return last_line
+			raw_data = f.readline().decode()
+			process1 = raw_data.replace("\t"," ")
+			process2 = process1.replace("\r\n","")
+			process3 = process2.replace(".000","")
+			fecha = process3[0:10]
+			hora = process3[11:16]
+			nivel = int(process3[-3:])
+			print(f"Nivel de agua en {nivel} cm. Ultima actualización: {fecha} a las {hora}")
+
+			return fecha,hora,nivel
 	else:
 		print("no se encontró el archivo watertank.txt")
 		last_line = None
@@ -115,19 +124,20 @@ while True:
 	if past_WT > 0:
 	#here is the part where we compare values to exercise critical actions
 	#dependiendo del nivel y de las tendencias se hacen las notificaciones pertinentes.
-		if actual_WT < 81:
+		if actual_WT[2] < 81:
 			#call critical function
-			send_message(JorgeMorales,quote(f"Notificación de nivel crítico de cisterna: Nivel en {actual_WT}"),token_bot)
+			send_message(JorgeMorales,quote(f"Notificación de nivel crítico de cisterna: Nivel en {actual_WT[2]}"),token_bot)
 		#get WT updates every 12 passes or 120 minutes
 		if(control_number % 12 == 0):
-			delta_WT =  actual_WT - past_WT
+			delta_WT =  actual_WT[2] - past_WT
 			if delta_WT <= -2:
-				min_left = actual_WT/((past_WT-actual_WT)/10)
-				print(f"Nivel de cisterna en {actual_WT}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío")
+				min_left = actual_WT[2]/((past_WT-actual_WT[2])/10)
+				print(f"Nivel de cisterna en {actual_WT[2]}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío")
 			else:
 				send_message(JorgeMorales,quote(f"Nivel de cisterna: {actual_WT}. Hay {delta_WT} cm de diferencia vs ultima actualización"),token_bot)
+		send_message(JorgeMorales,quote(f"Información actualizada por ultima vez en: {actual_WT[0]} a las {actual_WT[1]}"),token_bot)
 			
 
-	past_WT = actual_WT
+	past_WT = actual_WT[2]
 
 	time.sleep(20)
