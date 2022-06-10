@@ -144,8 +144,8 @@ while True:
 				print(f"Nivel de cisterna en {actual_WT[2]}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío")
 				send_message(Grupo_WT,quote(f"Nivel de cisterna en {actual_WT[2]}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío"),token_bot)
 			else:
-				send_message(Grupo_WT,quote(f"Nivel de cisterna: {actual_WT[2]}. Hay {delta_WT} cm de diferencia vs ultima actualización"),token_bot)
-			send_message(Grupo_WT,quote(f"Información actualizada por ultima vez en: {actual_WT[0]} a las {actual_WT[1]}"),token_bot)
+				send_message(Grupo_WT,quote(f"Nivel de cisterna: {actual_WT[2]}. Hay {delta_WT} cm de diferencia vs ultima actualización. Updated: {actual_WT[0]} - {actual_WT[1]} "),token_bot)
+			#send_message(Grupo_WT,quote(f"Información actualizada por ultima vez en: {actual_WT[0]} a las {actual_WT[1]}"),token_bot)
 			
 
 	past_WT = actual_WT[2]
