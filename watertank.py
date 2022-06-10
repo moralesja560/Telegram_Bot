@@ -16,11 +16,12 @@ import time
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 import json
+from datetime import date
 #get the info
 
 load_dotenv()
 JorgeMorales = os.getenv('JorgeMorales')
-Grupo_SAP = os.getenv('SAP_LT_GROUP')
+Grupo_WT = os.getenv('WATERTANK')
 AngelI = os.getenv('AngelI')
 token_bot = os.getenv('api_token')
 
@@ -80,10 +81,19 @@ past_WT = 0
 control_number = 1
 
 def retrieveWT():
+	today = date.today()
+	
 	#get the file
-	#ruta = str(mis_docs)+ r'\watertank.hst'
-	#subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
-	ruta2 = str(mis_docs)+ r'\watertank.txt'
+	#the name of the file
+	d1 = today.strftime("%d")
+	m1 = today.strftime("%m")
+	a1 = today.strftime("%y")
+	hst_name = f"18{a1}{m1}{d1}.hst"
+	txt_name = f"18{a1}{m1}{d1}.txt"
+	ruta = str(mis_docs)+ str(r'\\InduSoft Web Studio v7.1 Projects\SCADA_MubeaCSMx\Hst') + "\\" + hst_name
+	subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
+	time.sleep(5)
+	ruta2 = str(mis_docs)+ str(r'\\InduSoft Web Studio v7.1 Projects\SCADA_MubeaCSMx\Hst')+ "\\" + txt_name
 	file_exists = os.path.exists(ruta2)
 
 	if file_exists:
@@ -103,10 +113,9 @@ def retrieveWT():
 			hora = process3[11:16]
 			nivel = int(process3[-3:])
 			print(f"Nivel de agua en {nivel} cm. Ultima actualización: {fecha} a las {hora}")
-
 			return fecha,hora,nivel
 	else:
-		print("no se encontró el archivo watertank.txt")
+		print(f"no se encontró el archivo {txt_name}")
 		last_line = None
 		return last_line
 
@@ -126,18 +135,19 @@ while True:
 	#dependiendo del nivel y de las tendencias se hacen las notificaciones pertinentes.
 		if actual_WT[2] < 81:
 			#call critical function
-			send_message(JorgeMorales,quote(f"Notificación de nivel crítico de cisterna: Nivel en {actual_WT[2]}"),token_bot)
-		#get WT updates every 12 passes or 120 minutes
-		if(control_number % 12 == 0):
+			send_message(Grupo_WT,quote(f"Notificación de nivel crítico de cisterna: Nivel en {actual_WT[2]}"),token_bot)
+		#get WT updates every 3 passes or 30 minutes
+		if(control_number % 3 == 0):
 			delta_WT =  actual_WT[2] - past_WT
 			if delta_WT <= -2:
 				min_left = actual_WT[2]/((past_WT-actual_WT[2])/10)
 				print(f"Nivel de cisterna en {actual_WT[2]}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío")
+				send_message(Grupo_WT,quote(f"Nivel de cisterna en {actual_WT[2]}. Ha caido {delta_WT} cm en 10 minutos, se estiman { round(min_left/60,1)} hrs restantes hasta vacío"),token_bot)
 			else:
-				send_message(JorgeMorales,quote(f"Nivel de cisterna: {actual_WT}. Hay {delta_WT} cm de diferencia vs ultima actualización"),token_bot)
-		send_message(JorgeMorales,quote(f"Información actualizada por ultima vez en: {actual_WT[0]} a las {actual_WT[1]}"),token_bot)
+				send_message(Grupo_WT,quote(f"Nivel de cisterna: {actual_WT[2]}. Hay {delta_WT} cm de diferencia vs ultima actualización"),token_bot)
+			send_message(Grupo_WT,quote(f"Información actualizada por ultima vez en: {actual_WT[0]} a las {actual_WT[1]}"),token_bot)
 			
 
 	past_WT = actual_WT[2]
 
-	time.sleep(20)
+	time.sleep(600)
