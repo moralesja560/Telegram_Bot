@@ -137,7 +137,7 @@ while True:
 			#call critical function
 			send_message(Grupo_WT,quote(f"Notificación de nivel crítico de cisterna: Nivel en {actual_WT[2]}"),token_bot)
 		#get WT updates every 3 passes or 30 minutes
-		if(control_number % 3 == 0):
+		if(control_number % 6 == 0):
 			delta_WT =  actual_WT[2] - past_WT
 			if delta_WT <= -2:
 				min_left = actual_WT[2]/((past_WT-actual_WT[2])/10)
