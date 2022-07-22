@@ -118,6 +118,7 @@ def gwk_response(usuario):
 	print(rutafoto)
 	cv2.imwrite(rutafoto, img3)
 	send_photo(usuario,rutafoto,token)
+	os.remove(rutafoto)
 	return
 
 #####-----------------------------------End of  Response Functions----------------------------#
@@ -177,4 +178,4 @@ while True:
 				log_finished(str(offset))
 	else:
 		print('No hay nuevas actualizaciones')
-	time.sleep(20)
+	time.sleep(15)
