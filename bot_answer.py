@@ -5,15 +5,17 @@ from dotenv import load_dotenv
 import json
 import os
 import sys
-import csv
+import cv2
 import time
 from urllib.parse import quote
 import requests
+from random import randint, random
 
 load_dotenv()
 JorgeMorales = os.getenv('JorgeMorales')
 Grupo_SAP = os.getenv('SAP_LT_GROUP')
 AngelI = os.getenv('AngelI')
+Grupo_WT = os.getenv('WATERTANK')
 token = os.getenv('api_token')
 
 #---------------------------------------telegram messaging services---------------------#
@@ -32,7 +34,25 @@ def send_message(user_id, text,token):
 		cuerpo_respuesta = respuesta.read()
 		# Procesamos la respuesta json
 		json_respuesta = json.loads(cuerpo_respuesta.decode("utf-8"))
-		print("mensaje enviado exitosamente")
+		#print("mensaje enviado exitosamente")
+
+def send_photo(user_id, image,token):
+	img = open(image, 'rb')
+	#img = image
+	TOKEN = token
+	CHAT_ID = user_id
+	url = f'https://api.telegram.org/{TOKEN}/sendPhoto?chat_id={CHAT_ID}'
+	print(url)
+	#resp = requests.get(url)
+	#hacemos la petición
+
+	respuesta = requests.post(url, files={'photo': img})
+
+	if '200' in str(respuesta):
+		print(f"mensaje enviado exitosamente con código {respuesta}")
+	else:
+		print(f"Ha ocurrido un error al enviar el mensaje: {respuesta}")
+
 
 def get_Telegram_updates(offset):
 	#configuramos la pagina web 
@@ -83,14 +103,32 @@ offset = int(load_finished())
 print(f"-------evento inicial:{offset}")
 control_number = 1
 letter_list = get_pastebin()
+RTSP_URL = 'rtsp://root:MubMex30..@10.65.68.29/axis-media/media.amp'
+os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
+cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
 #####-----------------------------------End of initial conditions----------------------------#
+
+
+#####-----------------------------------Start of Response Functions----------------------------#
+
+def gwk_response(usuario):
+	success, frame1 = cap.read()
+	img3 = frame1[150:900,0:900]
+	rutafoto = resource_path(f"resources\img{randint(1,90000)}.jpg")
+	print(rutafoto)
+	cv2.imwrite(rutafoto, img3)
+	send_photo(usuario,rutafoto,token)
+	return
+
+#####-----------------------------------End of  Response Functions----------------------------#
+
 
 
 #####-----------------------------------Loop----------------------------#
 while True:
 	#control number to keep this in count
 	control_number += 1
-	print(control_number)
+	#print(control_number)
 	#get pastebin updates every 30 passes or 10 minutes
 	if(control_number % 30 == 0):
 		print("pastebin updated")
@@ -98,6 +136,8 @@ while True:
 	#load the last offset
 	#get the updates 
 	updates = get_Telegram_updates(offset)
+
+	print(updates)
 	
 	if len(updates) > 0:
 		for i in range(len(updates)):
@@ -112,21 +152,29 @@ while True:
 				print(f"el mensaje con id {updates[i-1]['update_id']} no es un mensaje de comando")
 				print(f"-------fin de evento:{offset}")	
 				offset += 1
+				log_finished(str(offset))
 			else:
 				##yes it was a message
 				#check the text user sent
-				print(f"En el update {upd_id} usuario {userID} envió el texto: {TelegramCommand}")
+				OK_Flag = False
+				print(f"En el update {upd_id} el usuario {userID} envió el texto: {TelegramCommand}")
 				for i in  range(len(letter_list)):
 					if TelegramCommand in letter_list[i]:
 						info_message = str(letter_list[i+1].replace("\r\n",""))
+						OK_Flag = True
 						break
-				if len(info_message)>0:
-					send_message(userID,quote(info_message),token)
+				if OK_Flag == True:
+					if len(info_message)>0:
+						send_message(userID,quote(info_message),token)
+						if TelegramCommand == "/gwk":
+							gwk_response(userID)
+					else:
+						send_message(userID,quote('No entendí tu mensaje: Aún no le sé bien a esto de responder a las personas.'),token)
+					print(f"-------fin de evento:{offset}")	
 				else:
-					send_message(userID,quote('No entendí tu mensaje: Aún no le sé bien a esto de responder a las personas.'),token)
-				print(f"-------fin de evento:{offset}")	
-				offset += 1
-		log_finished(str(offset))
+					print(f"comando {TelegramCommand} no tiene respuesta")
+				offset +=1
+				log_finished(str(offset))
 	else:
 		print('No hay nuevas actualizaciones')
 	time.sleep(20)
