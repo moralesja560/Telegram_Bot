@@ -105,13 +105,14 @@ control_number = 1
 letter_list = get_pastebin()
 RTSP_URL = 'rtsp://root:MubMex30..@10.65.68.29/axis-media/media.amp'
 os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
-cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
+#cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
 #####-----------------------------------End of initial conditions----------------------------#
 
 
 #####-----------------------------------Start of Response Functions----------------------------#
 
 def gwk_response(usuario):
+	cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
 	success, frame1 = cap.read()
 	img3 = frame1[150:900,0:900]
 	rutafoto = resource_path(f"resources\img{randint(1,90000)}.jpg")
@@ -119,6 +120,7 @@ def gwk_response(usuario):
 	cv2.imwrite(rutafoto, img3)
 	send_photo(usuario,rutafoto,token)
 	os.remove(rutafoto)
+	cap.release()
 	return
 
 #####-----------------------------------End of  Response Functions----------------------------#
