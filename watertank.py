@@ -2,13 +2,10 @@
 #developed by Ing. Jorge Morales, MBA.
 #Control and Automation Engineering Department
 
-from email.contentmanager import raw_data_manager
-from math import trunc
 import os
 import sys
 import subprocess
 import time
-import requests
 import os
 from dotenv import load_dotenv
 import sys

@@ -1,4 +1,3 @@
-from turtle import update
 from urllib.request import Request
 from urllib.request import urlopen
 from dotenv import load_dotenv
@@ -9,7 +8,11 @@ import cv2
 import time
 from urllib.parse import quote
 import requests
-from random import randint, random
+from random import randint
+import subprocess
+from datetime import date
+import datetime
+import pyautogui
 
 load_dotenv()
 JorgeMorales = os.getenv('JorgeMorales')
@@ -79,6 +82,19 @@ def resource_path(relative_path):
 	base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 	return os.path.join(base_path, relative_path)
 
+def My_Documents(location):
+	import ctypes.wintypes
+		#####-----This section discovers My Documents default path --------
+		#### loop the "location" variable to find many paths, including AppData and ProgramFiles
+	CSIDL_PERSONAL = location       # My Documents
+	SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+	buf= ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+	ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+	#####-------- please use buf.value to store the data in a variable ------- #####
+	#add the text filename at the end of the path
+	temp_docs = buf.value
+	return temp_docs
+
 def load_finished():
 	with open(resource_path(r'images/last.txt'), 'r') as f:
 		last_request = f.readline()
@@ -96,7 +112,10 @@ def log_finished(offset):
 	with open(resource_path(r'images/last.txt'), 'w') as f:
 		f.write(offset)
 
-#####-----------------------------------Auxiliary Functions----------------------------#
+
+
+
+#####-----------------------------------End of Auxiliary Functions----------------------------#
 
 #####-----------------------------------Initial Conditions----------------------------#
 offset = int(load_finished())
@@ -105,23 +124,82 @@ control_number = 1
 letter_list = get_pastebin()
 RTSP_URL = 'rtsp://root:MubMex30..@10.65.68.29/axis-media/media.amp'
 os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
-#cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
+mis_docs = My_Documents(5)
+last_line = ""
 #####-----------------------------------End of initial conditions----------------------------#
 
 
 #####-----------------------------------Start of Response Functions----------------------------#
 
 def gwk_response(usuario):
-	cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
-	success, frame1 = cap.read()
-	img3 = frame1[150:900,0:900]
-	rutafoto = resource_path(f"images\img{randint(1,90000)}.jpg")
-	print(rutafoto)
-	cv2.imwrite(rutafoto, img3)
-	send_photo(usuario,rutafoto,token)
-	os.remove(rutafoto)
-	cap.release()
+	try:
+		cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
+		
+	except:
+		send_message(userID,quote('Creo que no hay internet o algo, no puedo conectarme a la cámara'),token)
+	else:	
+		success, frame1 = cap.read()
+		img3 = frame1[150:900,0:900]
+		rutafoto = resource_path(f"images\img{randint(1,90000)}.jpg")
+		print(rutafoto)
+		cv2.imwrite(rutafoto, img3)
+		send_photo(usuario,rutafoto,token)
+		os.remove(rutafoto)
+		cap.release()
 	return
+
+def retrieveWT():
+	today = date.today()
+	
+	#get the file
+	#the name of the file
+	d1 = today.strftime("%d")
+	m1 = today.strftime("%m")
+	a1 = today.strftime("%y")
+	hst_name = f"18{a1}{m1}{d1}.hst"
+	txt_name = f"18{a1}{m1}{d1}.txt"
+	ruta = str(mis_docs)+ str(r'\\InduSoft Web Studio v7.1 Projects\SCADA_MubeaCSMx\Hst') + "\\" + hst_name
+	subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
+	time.sleep(5)
+	ruta2 = str(mis_docs)+ str(r'\\InduSoft Web Studio v7.1 Projects\SCADA_MubeaCSMx\Hst')+ "\\" + txt_name
+	file_exists = os.path.exists(ruta2)
+
+	if file_exists:
+		#if the file exists, then open and read it.
+		with open(ruta2, 'rb') as f:
+			try:  # catch OSError in case of a one line file 
+				f.seek(-2, os.SEEK_END)
+				while f.read(1) != b'\n':
+					f.seek(-2, os.SEEK_CUR)
+			except OSError:
+				f.seek(0)
+			raw_data = f.readline().decode()
+			process1 = raw_data.replace("\t"," ")
+			process2 = process1.replace("\r\n","")
+			process3 = process2.replace(".000","")
+			fecha = process3[0:10]
+			hora = process3[11:16]
+			nivel = int(process3[-3:])
+			print(f"Nivel de agua en {nivel} cm. Ultima actualización: {fecha} a las {hora}")
+			return fecha,hora,nivel
+	else:
+		print(f"no se encontró el archivo {txt_name}")
+		last_line = None
+		return last_line
+
+def take_screenshot():
+	now = datetime.now()
+	dt_string = now.strftime("%d%m%Y-%H%M%S")
+	mis_docs = My_Documents(5)
+	im = pyautogui.screenshot()
+	#check if folder exists
+	isFile = os.path.isdir(f"{mis_docs}/scfolder")
+	if isFile == False:
+		os.mkdir(f"{mis_docs}/scfolder/")
+	ruta_img = f"{mis_docs}/scfolder/sc-{dt_string}.png"
+	im.save(ruta_img)
+
+	return ruta_img
 
 #####-----------------------------------End of  Response Functions----------------------------#
 
@@ -171,6 +249,13 @@ while True:
 						send_message(userID,quote(info_message),token)
 						if TelegramCommand == "/gwk":
 							gwk_response(userID)
+						elif TelegramCommand == "/watertank":
+							actual_WT = retrieveWT()
+							send_message(userID,quote(f"El nivel de la cisterna está en {actual_WT[2]}"),token)
+						elif TelegramCommand == "/scada":
+							ruta_foto = take_screenshot()
+							send_photo(userID,ruta_foto,token)
+							os.remove(ruta_foto)
 					else:
 						send_message(userID,quote('No entendí tu mensaje: Aún no le sé bien a esto de responder a las personas.'),token)
 					print(f"-------fin de evento:{offset}")	
