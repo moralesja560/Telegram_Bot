@@ -115,7 +115,7 @@ def gwk_response(usuario):
 	cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
 	success, frame1 = cap.read()
 	img3 = frame1[150:900,0:900]
-	rutafoto = resource_path(f"resources\img{randint(1,90000)}.jpg")
+	rutafoto = resource_path(f"images\img{randint(1,90000)}.jpg")
 	print(rutafoto)
 	cv2.imwrite(rutafoto, img3)
 	send_photo(usuario,rutafoto,token)
