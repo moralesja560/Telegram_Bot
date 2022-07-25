@@ -139,7 +139,8 @@ def gwk_response(usuario):
 		send_message(userID,quote('Creo que no hay internet o algo, no puedo conectarme a la cámara'),token)
 	else:	
 		success, frame1 = cap.read()
-		img3 = frame1[150:900,0:900]
+		#img3 = frame1[150:900,0:900]
+		img3 = frame1
 		rutafoto = resource_path(f"images\img{randint(1,90000)}.jpg")
 		print(rutafoto)
 		cv2.imwrite(rutafoto, img3)
@@ -218,6 +219,11 @@ while True:
 	#get the updates 
 	updates = get_Telegram_updates(offset)
 
+	#this area is to analyze an offset bug that i've found.
+	if len(updates) >0:
+		if offset - int(updates[0]['update_id']) < 0:
+			offset = int(updates[0]['update_id'])
+
 	print(updates)
 	
 	if len(updates) > 0:
@@ -225,12 +231,12 @@ while True:
 			print(f"-------Nuevo evento:{offset}")
 			try:
 				#check if the update_is good and if it's a message
-				upd_id = str(updates[i-1]['update_id'])
-				userID = str(updates[i-1]['message']['from']['id'])
-				TelegramCommand = str(updates[i-1]['message']['text'])
+				upd_id = str(updates[i]['update_id'])
+				userID = str(updates[i]['message']['from']['id'])
+				TelegramCommand = str(updates[i]['message']['text'])
 			except:
 				#nop. it wasn't a message
-				print(f"el mensaje con id {updates[i-1]['update_id']} no es un mensaje de comando")
+				print(f"el mensaje con id {updates[i]['update_id']} no es un mensaje de comando")
 				print(f"-------fin de evento:{offset}")	
 				offset += 1
 				log_finished(str(offset))
@@ -250,14 +256,14 @@ while True:
 						if TelegramCommand == "/gwk":
 							gwk_response(userID)
 						elif TelegramCommand == "/watertank":
-							actual_WT = retrieveWT()
-							send_message(userID,quote(f"El nivel de la cisterna está en {actual_WT[2]}"),token)
+							#actual_WT = retrieveWT()
+							#send_message(userID,quote(f"El nivel de la cisterna está en {actual_WT[2]}"),token)
+							pass
 						elif TelegramCommand == "/scada":
-							ruta_foto = take_screenshot()
-							send_photo(userID,ruta_foto,token)
-							os.remove(ruta_foto)
-					else:
-						send_message(userID,quote('No entendí tu mensaje: Aún no le sé bien a esto de responder a las personas.'),token)
+							#ruta_foto = take_screenshot()
+							#send_photo(userID,ruta_foto,token)
+							#os.remove(ruta_foto)
+							pass
 					print(f"-------fin de evento:{offset}")	
 				else:
 					print(f"comando {TelegramCommand} no tiene respuesta")
