@@ -2,7 +2,6 @@
 import requests
 import os
 from dotenv import load_dotenv
-import pyautogui
 import sys
 import time
 from urllib.parse import quote
@@ -19,12 +18,10 @@ def resource_path(relative_path):
 
 
 load_dotenv()
-JorgeMorales = os.getenv('JorgeMorales')
-Grupo_SAP = os.getenv('SAP_LT_GROUP')
-AngelI = os.getenv('AngelI')
-token = os.getenv('api_token')
+JorgeMorales = os.getenv('JORGE_MORALES')
+token = os.getenv('API_TOKEN')
 
-print(JorgeMorales)
+
 ############################################## Function to send message
 def send_message(user_id, text,token):
 	global json_respuesta
@@ -62,13 +59,10 @@ def send_photo(user_id, image,token):
 
 
 
-while True:
-	# Code executed here
 
-	im1 = pyautogui.screenshot(region=(43,279, 343, 500))
-	im1.save(resource_path(r"screenshot.png"))
-	message = 'error'
-	text_encoded = quote(message)
-	send_message(Grupo_SAP,text_encoded ,token)
-	#send_photo(Carlos, 'screenshot.png',token)
-	time.sleep(200)
+message = 'Hello, Im alive'
+text_encoded = quote(message)
+send_message(JorgeMorales,text_encoded ,token)
+
+
+
