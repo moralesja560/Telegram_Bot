@@ -133,62 +133,7 @@ last_line = ""
 
 #####-----------------------------------Start of Response Functions----------------------------#
 
-def gwk_response(usuario):
-	try:
-		cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
-		
-	except:
-		send_message(userID,quote('Creo que no hay internet o algo, no puedo conectarme a la cámara'),token)
-	else:	
-		success, frame1 = cap.read()
-		#img3 = frame1[150:900,0:900]
-		img3 = frame1
-		rutafoto = resource_path(f"images\img{randint(1,90000)}.jpg")
-		print(rutafoto)
-		cv2.imwrite(rutafoto, img3)
-		send_photo(usuario,rutafoto,token)
-		os.remove(rutafoto)
-		cap.release()
-	return
 
-def retrieveWT():
-	today = date.today()
-	
-	#get the file
-	#the name of the file
-	d1 = today.strftime("%d")
-	m1 = today.strftime("%m")
-	a1 = today.strftime("%y")
-	hst_name = f"18{a1}{m1}{d1}.hst"
-	txt_name = f"18{a1}{m1}{d1}.txt"
-	ruta = str(mis_docs)+ str(r'\\InduSoft Web Studio v7.1 Projects\SCADA_MubeaCSMx\Hst') + "\\" + hst_name
-	subprocess.call([resource_path(r"images/HST2TXT.exe"), ruta])
-	time.sleep(5)
-	ruta2 = str(mis_docs)+ str(r'\\InduSoft Web Studio v7.1 Projects\SCADA_MubeaCSMx\Hst')+ "\\" + txt_name
-	file_exists = os.path.exists(ruta2)
-
-	if file_exists:
-		#if the file exists, then open and read it.
-		with open(ruta2, 'rb') as f:
-			try:  # catch OSError in case of a one line file 
-				f.seek(-2, os.SEEK_END)
-				while f.read(1) != b'\n':
-					f.seek(-2, os.SEEK_CUR)
-			except OSError:
-				f.seek(0)
-			raw_data = f.readline().decode()
-			process1 = raw_data.replace("\t"," ")
-			process2 = process1.replace("\r\n","")
-			process3 = process2.replace(".000","")
-			fecha = process3[0:10]
-			hora = process3[11:16]
-			nivel = int(process3[-3:])
-			print(f"Nivel de agua en {nivel} cm. Ultima actualización: {fecha} a las {hora}")
-			return fecha,hora,nivel
-	else:
-		print(f"no se encontró el archivo {txt_name}")
-		last_line = None
-		return last_line
 
 def rutina_aprobar(codename):
 	nom_archivo = "\Request" + codename + ".csv"
