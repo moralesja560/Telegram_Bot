@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import json
 import os
 import sys
-import cv2
 import time
 from urllib.parse import quote
 import requests
@@ -12,14 +11,19 @@ from random import randint
 import subprocess
 from datetime import date
 import datetime
-import pyautogui
 
-load_dotenv()
-JorgeMorales = os.getenv('JorgeMorales')
-Grupo_SAP = os.getenv('SAP_LT_GROUP')
-AngelI = os.getenv('AngelI')
-Grupo_WT = os.getenv('WATERTANK')
-token = os.getenv('api_token')
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+
+
+
+load_dotenv(resource_path("images/.env"))
+JorgeMorales = os.getenv('JORGE_MORALES')
+token = os.getenv('API_TOKEN')
 
 #---------------------------------------telegram messaging services---------------------#
 
@@ -100,7 +104,7 @@ def load_finished():
 		last_request = f.readline()
 	return last_request
 def get_pastebin():
-	url = 'https://pastebin.com/raw/Zxr2c7kb' # url of paste
+	url = 'https://pastebin.com/raw/hFkXzuRu' # url of paste
 	r = requests.get(url) # response will be stored from url
 	content = r.text  # raw text from url
 	#print(content) # prints content
@@ -122,8 +126,6 @@ offset = int(load_finished())
 print(f"-------evento inicial:{offset}")
 control_number = 1
 letter_list = get_pastebin()
-RTSP_URL = 'rtsp://root:MubMex30..@10.65.68.29/axis-media/media.amp'
-os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
 mis_docs = My_Documents(5)
 last_line = ""
 #####-----------------------------------End of initial conditions----------------------------#
@@ -188,19 +190,20 @@ def retrieveWT():
 		last_line = None
 		return last_line
 
-def take_screenshot():
-	now = datetime.now()
-	dt_string = now.strftime("%d%m%Y-%H%M%S")
-	mis_docs = My_Documents(5)
-	im = pyautogui.screenshot()
-	#check if folder exists
-	isFile = os.path.isdir(f"{mis_docs}/scfolder")
-	if isFile == False:
-		os.mkdir(f"{mis_docs}/scfolder/")
-	ruta_img = f"{mis_docs}/scfolder/sc-{dt_string}.png"
-	im.save(ruta_img)
+def rutina_aprobar(codename):
+	nom_archivo = "\Request" + codename + ".csv"
+	new_nombre = "\Request" + codename + "_appr" ".csv"
+	ruta = os.path.dirname(os.path.abspath(__file__))
+	#os.rename(resource_path(f"/ {nom_archivo}"), resource_path(f"/{new_nombre}"))
+	os.rename(f"{ruta +nom_archivo}",f"{ruta + new_nombre}" )
 
-	return ruta_img
+def rutina_denegar(codename):
+	nom_archivo = "\Request" + codename + ".csv"
+	new_nombre = "\Request" + codename + "_denied" ".csv"
+	ruta = os.path.dirname(os.path.abspath(__file__))
+	#os.rename(resource_path(f"/ {nom_archivo}"), resource_path(f"/{new_nombre}"))
+	os.rename(f"{ruta +nom_archivo}",f"{ruta + new_nombre}" )
+
 
 #####-----------------------------------End of  Response Functions----------------------------#
 
@@ -245,25 +248,29 @@ while True:
 				#check the text user sent
 				OK_Flag = False
 				print(f"En el update {upd_id} el usuario {userID} envió el texto: {TelegramCommand}")
-				for i in  range(len(letter_list)):
-					if TelegramCommand in letter_list[i]:
-						info_message = str(letter_list[i+1].replace("\r\n",""))
-						OK_Flag = True
-						break
+				#for i in  range(len(letter_list)):
+				#	if TelegramCommand in letter_list[i]:
+				info_message = str(letter_list[i+1].replace("\r\n",""))
+				OK_Flag = True
 				if OK_Flag == True:
 					if len(info_message)>0:
-						send_message(userID,quote(info_message),token)
+						#send_message(userID,quote(info_message),token)
 						if TelegramCommand == "/gwk":
 							gwk_response(userID)
 						elif TelegramCommand == "/watertank":
-							#actual_WT = retrieveWT()
-							#send_message(userID,quote(f"El nivel de la cisterna está en {actual_WT[2]}"),token)
 							pass
-						elif TelegramCommand == "/scada":
-							#ruta_foto = take_screenshot()
-							#send_photo(userID,ruta_foto,token)
-							#os.remove(ruta_foto)
-							pass
+						elif "Aprobar" in TelegramCommand or "aprobar" in TelegramCommand:
+							if len(TelegramCommand)>8:
+								send_message(JorgeMorales,quote(f"Gracias por aprobar la solicitud {TelegramCommand[-4:]}") ,token)
+								rutina_aprobar(TelegramCommand[-4:])
+							else:
+								send_message(JorgeMorales,quote(f"No entendí tu mensaje. usa aprobar o denegar + num de solicitud") ,token)
+						elif "Denegar" in TelegramCommand or "denegar" in TelegramCommand:
+							if len(TelegramCommand)>9:
+								send_message(JorgeMorales,quote(f"Gracias por su respuesta. Se almacenará el registro {TelegramCommand[-4:]}") ,token)
+								rutina_denegar(TelegramCommand[-4:])
+							else:
+								send_message(JorgeMorales,quote(f"No entendí tu mensaje. usa aprobar o denegar + num de solicitud") ,token)							
 					print(f"-------fin de evento:{offset}")	
 				else:
 					print(f"comando {TelegramCommand} no tiene respuesta")

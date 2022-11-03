@@ -1,17 +1,4 @@
-from datetime import date
+import os
 
-today = date.today()
 
-# dd/mm/YY
-d1 = today.strftime("%d")
-print(d1)
-m1 = today.strftime("%m")
-print(m1)
-a1 = today.strftime("%y")
-print(a1)
-
-#18220609
-
-hst_name = f"18{a1}{m1}{d1}.hst"
-
-print(hst_name)
+print(os.path.dirname(os.path.abspath(__file__)))

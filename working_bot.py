@@ -7,7 +7,7 @@ import time
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 import json
-
+import csv
 
 
 def resource_path(relative_path):
@@ -17,7 +17,7 @@ def resource_path(relative_path):
 
 
 
-load_dotenv()
+load_dotenv(resource_path("images/.env"))
 JorgeMorales = os.getenv('JORGE_MORALES')
 token = os.getenv('API_TOKEN')
 
@@ -58,11 +58,28 @@ def send_photo(user_id, image,token):
 ###################end of functions
 
 
+# Cuando nos manden llamar, busquemos los requests con el numero, pero que no digan approved.
 
+file_array = os.listdir(os.path.dirname(os.path.abspath(__file__)))
 
-message = 'Hello, Im alive'
-text_encoded = quote(message)
-send_message(JorgeMorales,text_encoded ,token)
+for file in file_array:
+	if "Request" in file and not ("appr" in file or "denied" in file):
+		selected_file  = file
+		number_file = file[7:-4]
+		with open(resource_path(selected_file), 'rb') as f:
+			raw_data = f.readlines()
+ 
+#print(raw_data)
 
+		with open(resource_path(selected_file), mode='r') as csv_file:
+			csv_reader = csv.DictReader(csv_file)
+			text_encoded = quote(f"Solicitud de salida de material: {number_file}")
+			send_message(JorgeMorales,text_encoded ,token)
+			for row in csv_reader:
+				text_encoded = quote(f'\t PartNum {row["Part Number"]} \nDescr: {row["Description"]} \nQty: {row["Qty"]} \nUnitPrice {row["Price"]}')
+				send_message(JorgeMorales,text_encoded ,token)
 
-
+		message = f"aprobar{number_file} >> aprueba el material \ndenegar{number_file} >>> no entregar el material"
+		text_encoded = quote(message)
+		send_message(JorgeMorales,text_encoded ,token)
+	print(file)
