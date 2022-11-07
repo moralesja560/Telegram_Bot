@@ -24,6 +24,7 @@ def resource_path(relative_path):
 load_dotenv(resource_path("images/.env"))
 JorgeMorales = os.getenv('JORGE_MORALES')
 token = os.getenv('API_TOKEN')
+almacenista = os.getenv('ALMACENISTA')
 
 #---------------------------------------telegram messaging services---------------------#
 
@@ -140,15 +141,20 @@ def rutina_aprobar(codename):
 	new_nombre = "\Request" + codename + "_appr" ".csv"
 	ruta = os.path.dirname(os.path.abspath(__file__))
 	#os.rename(resource_path(f"/ {nom_archivo}"), resource_path(f"/{new_nombre}"))
-	os.rename(f"{ruta +nom_archivo}",f"{ruta + new_nombre}" )
+	try:
+		os.rename(f"{ruta +nom_archivo}",f"{ruta + new_nombre}" )
+	except:
+		send_message(JorgeMorales,quote(f"No pude renombrar el archivo {new_nombre} ") ,token)
 
 def rutina_denegar(codename):
 	nom_archivo = "\Request" + codename + ".csv"
 	new_nombre = "\Request" + codename + "_denied" ".csv"
 	ruta = os.path.dirname(os.path.abspath(__file__))
 	#os.rename(resource_path(f"/ {nom_archivo}"), resource_path(f"/{new_nombre}"))
-	os.rename(f"{ruta +nom_archivo}",f"{ruta + new_nombre}" )
-
+	try:
+		os.rename(f"{ruta +nom_archivo}",f"{ruta + new_nombre}" )
+	except:
+		send_message(JorgeMorales,quote(f"No pude renombrar el archivo {new_nombre} ") ,token)
 
 #####-----------------------------------End of  Response Functions----------------------------#
 
@@ -189,33 +195,25 @@ while True:
 				offset += 1
 				log_finished(str(offset))
 			else:
-				##yes it was a message
 				#check the text user sent
-				OK_Flag = False
 				print(f"En el update {upd_id} el usuario {userID} envió el texto: {TelegramCommand}")
 				#for i in  range(len(letter_list)):
 				#	if TelegramCommand in letter_list[i]:
 				info_message = str(letter_list[i+1].replace("\r\n",""))
-				OK_Flag = True
-				if OK_Flag == True:
-					if len(info_message)>0:
-						#send_message(userID,quote(info_message),token)
-						if TelegramCommand == "/gwk":
-							gwk_response(userID)
-						elif TelegramCommand == "/watertank":
-							pass
-						elif "Aprobar" in TelegramCommand or "aprobar" in TelegramCommand:
-							if len(TelegramCommand)>8:
-								send_message(JorgeMorales,quote(f"Gracias por aprobar la solicitud {TelegramCommand[-4:]}") ,token)
-								rutina_aprobar(TelegramCommand[-4:])
-							else:
-								send_message(JorgeMorales,quote(f"No entendí tu mensaje. usa aprobar o denegar + num de solicitud") ,token)
-						elif "Denegar" in TelegramCommand or "denegar" in TelegramCommand:
-							if len(TelegramCommand)>9:
-								send_message(JorgeMorales,quote(f"Gracias por su respuesta. Se almacenará el registro {TelegramCommand[-4:]}") ,token)
-								rutina_denegar(TelegramCommand[-4:])
-							else:
-								send_message(JorgeMorales,quote(f"No entendí tu mensaje. usa aprobar o denegar + num de solicitud") ,token)							
+				if len(info_message)>0:
+					#send_message(userID,quote(info_message),token)
+					if "Aprobar" in TelegramCommand or "aprobar" in TelegramCommand:
+						if len(TelegramCommand)>8:
+							send_message(JorgeMorales,quote(f"Gracias por aprobar la solicitud {TelegramCommand[-4:]}") ,token)
+							send_message(almacenista,quote(f"La solicitud {TelegramCommand[-4:]} fue aprobada. Siga el procedimiento para entregar el material") ,token)
+							rutina_aprobar(TelegramCommand[-4:])
+					elif "Denegar" in TelegramCommand or "denegar" in TelegramCommand:
+						if len(TelegramCommand)>9:
+							send_message(JorgeMorales,quote(f"Gracias por su respuesta. Se almacenará el registro {TelegramCommand[-4:]}") ,token)
+							rutina_denegar(TelegramCommand[-4:])
+							send_message(almacenista,quote(f"La solicitud {TelegramCommand[-4:]} fue denegada. No puede entregar el material") ,token)
+					else:
+						send_message(JorgeMorales,quote(f"No entendí tu mensaje. usa aprobar o denegar + num de solicitud") ,token)							
 					print(f"-------fin de evento:{offset}")	
 				else:
 					print(f"comando {TelegramCommand} no tiene respuesta")
