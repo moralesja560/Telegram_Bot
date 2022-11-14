@@ -66,9 +66,10 @@ for file in file_array:
 	if "Request" in file and not ("appr" in file or "denied" in file):
 		selected_file  = file
 		number_file = file[7:-4]
+		print ( f"Solicitud pendiente: {number_file}")
 		with open(resource_path(selected_file), 'rb') as f:
 			raw_data = f.readlines()
- 
+  
 #print(raw_data)
 
 		with open(resource_path(selected_file), mode='r') as csv_file:
@@ -82,4 +83,3 @@ for file in file_array:
 		message = f"aprobar{number_file} >> aprueba el material \ndenegar{number_file} >>> no entregar el material"
 		text_encoded = quote(message)
 		send_message(JorgeMorales,text_encoded ,token)
-	print(file)
