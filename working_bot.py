@@ -68,5 +68,5 @@ while True:
 	message = 'error'
 	text_encoded = quote(message)
 	send_message(JorgeMorales,text_encoded ,token)
-	send_photo(JorgeMorales, 'screenshot.png',token)
+	send_photo(JorgeMorales, resource_path(r"screenshot.png"),token)
 	time.sleep(200)
